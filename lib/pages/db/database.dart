@@ -24,6 +24,7 @@ class DataBaseService {
     var tempDir = await getApplicationDocumentsDirectory();
     String _embPath = tempDir.path + '/emb.json';
 
+    print(_embPath);
     jsonFile = new File(_embPath);
 
     if (jsonFile.existsSync()) {
@@ -33,8 +34,8 @@ class DataBaseService {
 
   /// [Name]: name of the new user
   /// [Data]: Face representation for Machine Learning model
-  Future saveData(String user, String password, List modelData) async {
-    String userAndPass = user + ':' + password;
+  Future saveData(String firstName, String lastName, String password,String userClass,String userParentMobile, List modelData) async {
+    String userAndPass = firstName+ ':' +lastName+ ':' + password + ':' + userClass + ':' + userParentMobile;
     _db[userAndPass] = modelData;
     jsonFile.writeAsStringSync(json.encode(_db));
   }

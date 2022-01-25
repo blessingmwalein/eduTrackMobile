@@ -225,6 +225,7 @@ class SignUpState extends State<SignUp> {
                 onPressed: onShot,
                 isLogin: false,
                 reload: _reload,
+                isSignUp :true
               )
             : Container());
   }

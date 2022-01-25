@@ -67,7 +67,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0XFFC7FFBE),
+      backgroundColor: Color(0XFF83bbde),
       appBar: AppBar(
         leading: Container(),
         elevation: 0,
@@ -78,7 +78,7 @@ class _MyHomePageState extends State<MyHomePage> {
             child: PopupMenuButton<String>(
               child: Icon(
                 Icons.more_vert,
-                color: Colors.black,
+                color: Colors.white,
               ),
               onSelected: (value) {
                 switch (value) {
@@ -105,27 +105,30 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
-                    Image(image: AssetImage('assets/logo.png')),
+                    Image(image: AssetImage('assets/eduTrack.png'),
+                        width: 280,
+                        height: 200,
+                        fit:BoxFit.fill),
                     Container(
                       width: MediaQuery.of(context).size.width * 0.8,
                       child: Column(
                         children: [
                           Text(
-                            "FACE RECOGNITION AUTHENTICATION",
+                            "EDUTRACK SCHOOL ATTENDANCE SYSTEM",
                             style: TextStyle(
-                                fontSize: 25, fontWeight: FontWeight.bold),
+                                fontSize: 25, fontWeight: FontWeight.bold, color: Colors.white),
                             textAlign: TextAlign.center,
                           ),
                           SizedBox(
                             height: 20,
                           ),
-                          Text(
-                            "Demo application that uses Flutter and tensorflow to implement authentication with facial recognition",
-                            style: TextStyle(
-                              fontSize: 16,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
+                          // Text(
+                          //   "Demo application that uses Flutter and tensorflow to implement authentication with facial recognition",
+                          //   style: TextStyle(
+                          //     fontSize: 16,
+                          //   ),
+                          //   textAlign: TextAlign.center,
+                          // ),
                         ],
                       ),
                     ),
@@ -162,7 +165,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  'LOGIN',
+                                  'CHECK IN',
                                   style: TextStyle(color: Color(0xFF0F0BDB)),
                                 ),
                                 SizedBox(
@@ -207,7 +210,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  'SIGN UP',
+                                  'REGISTER',
                                   style: TextStyle(color: Colors.white),
                                 ),
                                 SizedBox(
@@ -218,49 +221,49 @@ class _MyHomePageState extends State<MyHomePage> {
                             ),
                           ),
                         ),
-                        SizedBox(
-                          height: 20,
-                          width: MediaQuery.of(context).size.width * 0.8,
-                          child: Divider(
-                            thickness: 2,
-                          ),
-                        ),
-                        InkWell(
-                          onTap: _launchURL,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: Colors.black,
-                              boxShadow: <BoxShadow>[
-                                BoxShadow(
-                                  color: Colors.blue.withOpacity(0.1),
-                                  blurRadius: 1,
-                                  offset: Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            alignment: Alignment.center,
-                            padding: EdgeInsets.symmetric(
-                                vertical: 14, horizontal: 16),
-                            width: MediaQuery.of(context).size.width * 0.8,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'CONTRIBUTE',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                SizedBox(
-                                  width: 10,
-                                ),
-                                FaIcon(
-                                  FontAwesomeIcons.github,
-                                  color: Colors.white,
-                                )
-                              ],
-                            ),
-                          ),
-                        ),
+                        // SizedBox(
+                        //   height: 20,
+                        //   width: MediaQuery.of(context).size.width * 0.8,
+                        //   child: Divider(
+                        //     thickness: 2,
+                        //   ),
+                        // ),
+                        // InkWell(
+                        //   onTap: _launchURL,
+                        //   child: Container(
+                        //     decoration: BoxDecoration(
+                        //       borderRadius: BorderRadius.circular(10),
+                        //       color: Colors.black,
+                        //       boxShadow: <BoxShadow>[
+                        //         BoxShadow(
+                        //           color: Colors.blue.withOpacity(0.1),
+                        //           blurRadius: 1,
+                        //           offset: Offset(0, 2),
+                        //         ),
+                        //       ],
+                        //     ),
+                        //     alignment: Alignment.center,
+                        //     padding: EdgeInsets.symmetric(
+                        //         vertical: 14, horizontal: 16),
+                        //     width: MediaQuery.of(context).size.width * 0.8,
+                        //     child: Row(
+                        //       mainAxisAlignment: MainAxisAlignment.center,
+                        //       children: [
+                        //         Text(
+                        //           'CONTRIBUTE',
+                        //           style: TextStyle(color: Colors.white),
+                        //         ),
+                        //         SizedBox(
+                        //           width: 10,
+                        //         ),
+                        //         FaIcon(
+                        //           FontAwesomeIcons.github,
+                        //           color: Colors.white,
+                        //         )
+                        //       ],
+                        //     ),
+                        //   ),
+                        // ),
                       ],
                     )
                   ],

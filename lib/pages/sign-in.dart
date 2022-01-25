@@ -230,6 +230,7 @@ class SignInState extends State<SignIn> {
               onPressed: onShot,
               isLogin: true,
               reload: _reload,
+              isSignUp :false
             )
           : Container(),
     );

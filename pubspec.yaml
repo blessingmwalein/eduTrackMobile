@@ -36,6 +36,8 @@ dependencies:
   image: ^3.0.2
   font_awesome_flutter: ^9.0.0
   url_launcher: ^6.0.3
+  flutter_beep: ^1.0.0
+  http: ^0.13.4
 
 dev_dependencies:
   flutter_test:
@@ -56,6 +58,8 @@ flutter:
   assets:
     - assets/mobilefacenet.tflite
     - assets/logo.png
+    - assets/eduTrack.png
+    - assets/alarm.mp3
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
