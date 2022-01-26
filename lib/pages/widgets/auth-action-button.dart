@@ -230,8 +230,6 @@ class _AuthActionButtonState extends State<AuthActionButton> {
                 },
               );
 
-
-
               var response = await checkInOut(
                   this.predictedUser.firstName,
                   this.predictedUser.lastName,
