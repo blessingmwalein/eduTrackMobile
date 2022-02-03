@@ -12,6 +12,7 @@ import 'package:face_net_authentication/services/ml_kit_service.dart';
 import 'package:flutter/material.dart';
 import '../home.dart';
 import '../sign-in.dart';
+import '../sign-up.dart';
 import 'app_text_field.dart';
 import 'package:flutter_beep/flutter_beep.dart';
 import 'package:http/http.dart' as http;
@@ -22,13 +23,17 @@ class AuthActionButton extends StatefulWidget {
       @required this.onPressed,
       @required this.isLogin,
       this.reload,
-      this.isSignUp});
+      this.isSignUp,
+        this.setLoading,
+      this.loading});
 
   final Future _initializeControllerFuture;
-  final Function onPressed;
   final bool isLogin;
+  final Function onPressed;
+  final Function setLoading;
   final Function reload;
   final bool isSignUp;
+  bool loading;
 
   @override
   _AuthActionButtonState createState() => _AuthActionButtonState();
@@ -41,90 +46,70 @@ class _AuthActionButtonState extends State<AuthActionButton> {
   final CameraService _cameraService = CameraService();
   CameraDescription cameraDescription;
   MLKitService _mlKitService = MLKitService();
+
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final TextEditingController _firstNameTextEditingController =
       TextEditingController(text: '');
   final TextEditingController _lastNameTextEditingController =
       TextEditingController(text: '');
-  final TextEditingController _passwordTextEditingController =
+
+  final TextEditingController _emailTextEditingController =
       TextEditingController(text: '');
-  final TextEditingController _userRegTextEditingController =
-      TextEditingController(text: '');
-  final TextEditingController _userClassTextEditingController =
-      TextEditingController(text: '');
-  final TextEditingController _userParentMobileTextEditingController =
-      TextEditingController(text: '');
+  final TextEditingController _phoneNumberTextEditingController =
+  TextEditingController(text: '');
+
 
   User predictedUser;
 
-  Future _signUp(context) async {
+  Future _signUp(BuildContext context) async {
+    // _setLoading(true);
+    widget.setLoading(true);
+
     /// gets predicted data from facenet service (user face detected)
     List predictedData = _faceNetService.predictedData;
     String firstName = _firstNameTextEditingController.text;
     String lastName = _lastNameTextEditingController.text;
-    String userClass = _userClassTextEditingController.text;
-    String userParentMobile = _userParentMobileTextEditingController.text;
-    String userReg = _userRegTextEditingController.text;
+    String email = _emailTextEditingController.text;
+    String number = _phoneNumberTextEditingController.text;
 
     /// creates a new user in the 'database'
-    await _dataBaseService.saveData(firstName, lastName, userReg, userClass,
-        userParentMobile, predictedData);
 
-    /// resets the face stored in the face net sevice
-    ///
-    ///
+    var response = await _registerNewUser(firstName, lastName, email, number);
+
+    print(response.body);
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      await _dataBaseService.saveData(firstName, lastName, email, predictedData);
+
+      const snackBar = SnackBar(
+        content: Text('User registered successfully'),
+      );
+      // Find the ScaffoldMessenger in the widget tree
+      // and use it to show a SnackBar.
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      // reload();
+    } else {
+      widget.setLoading(false);
+      const snackBar = SnackBar(
+        content: Text('Something went wrong try again'),
+      );
+
+      // Find the ScaffoldMessenger in the widget tree
+      // and use it to show a SnackBar.
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      throw Exception('Failed to create student.');
+    }
+    widget.setLoading(false);
     this._faceNetService.setPredictedData(null);
     Navigator.push(context,
         MaterialPageRoute(builder: (BuildContext context) => MyHomePage()));
-  }
-
-  Future<http.Response> checkInOut(
-      String firstName,
-      String lastName,
-      String parentPhoneNumber,
-      String studentId,
-      String checkInOutStatus,
-      BuildContext context) async {
-    return http.post(
-      Uri.parse('https://www.edutrack.istart.co.zw/api/checkin'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        'first_name': firstName,
-        'last_name': lastName,
-        'parent_phone_number': parentPhoneNumber,
-        'time': DateTime.now().toString(),
-        'student_id': studentId,
-        'register_number': studentId
-      }),
-    );
-
-    // print(response.statusCode);
-    // print(response.body);
-    //
-    // if (response.statusCode == 201 || response.statusCode == 200) {
-    //
-    // } else {
-    //   // If the server did not return a 201 CREATED response,
-    //   // then throw an exception.
-    //   SnackBar(
-    //       content: const Text('Something went wrong'),
-    //       action: SnackBarAction(
-    //         label: 'Undo',
-    //         onPressed: () {
-    //           // Some code to undo the change.
-    //         },
-    //       ));
-    //   throw Exception('Failed to create to check in.');
-    // }
+    // widget.reload();
   }
 
   Future _signIn(context) async {
-    String password = _passwordTextEditingController.text;
+    String password = _emailTextEditingController.text;
 
-    if (this.predictedUser.regNumber == password) {
+    if (this.predictedUser.email == password) {
       Navigator.push(
           context,
           MaterialPageRoute(
@@ -144,6 +129,28 @@ class _AuthActionButtonState extends State<AuthActionButton> {
     }
   }
 
+  Future<http.Response> _registerNewUser(
+      String firstName, String lastName, String email, String number) async {
+    return http.post(
+      Uri.parse('https://www.edutrack.istart.co.zw/api/register'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(
+          <String, String>{'name': '$firstName $lastName', 'email': email, 'number' :number}),
+    );
+  }
+
+  Future<http.Response> _checkInUser(String email, String name) async {
+    return http.post(
+      Uri.parse('https://www.edutrack.istart.co.zw/api/checkin'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{'email': email}),
+    );
+  }
+
   String _predictUser() {
     String userAndPass = _faceNetService.predict();
     return userAndPass ?? null;
@@ -155,8 +162,14 @@ class _AuthActionButtonState extends State<AuthActionButton> {
     _startUp();
   }
 
+  _setLoading(bool value) {
+    setState(() {
+      widget.loading = value;
+    });
+  }
+
   _startUp() async {
-    // _setLoading(true);
+    _setLoading(true);
 
     List<CameraDescription> cameras = await availableCameras();
 
@@ -171,7 +184,7 @@ class _AuthActionButtonState extends State<AuthActionButton> {
     await _dataBaseService.loadDB();
     _mlKitService.initialize();
 
-    // _setLoading(false);
+    _setLoading(false);
   }
 
   @override
@@ -229,31 +242,24 @@ class _AuthActionButtonState extends State<AuthActionButton> {
                   );
                 },
               );
-
-              var response = await checkInOut(
-                  this.predictedUser.firstName,
-                  this.predictedUser.lastName,
-                  this.predictedUser.parentMobileNumber,
-                  this.predictedUser.regNumber,
-                  'checkIn',
-                  context);
-              if (response.statusCode == 200 || response.statusCode == 201) {
+              if (widget.isLogin && predictedUser != null) {
+                var response = await _checkInUser(this.predictedUser.email,
+                    "$this.predictedUser.firstName $this.predictedUser.firstName");
                 print(response.body);
+                if (response.statusCode == 200 || response.statusCode == 201) {
 
-
-              } else {
-                SnackBar(
-                    content: const Text('Something went wrong'),
-                    action: SnackBarAction(
-                      label: 'Undo',
-                      onPressed: () {
-                        // Some code to undo the change.
-                      },
-                    ));
-                throw Exception('Failed to create to check in.');
+                  const snackBar = SnackBar(
+                    content: Text('Check in successfully'),
+                  );
+                  ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                } else {
+                  const snackBar = SnackBar(
+                    content: Text('Something went wrong submitting to server'),
+                  );
+                  ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                  throw Exception('Failed to create to check in.');
+                }
               }
-              
-              
             }
           }
         } catch (e) {
@@ -261,41 +267,45 @@ class _AuthActionButtonState extends State<AuthActionButton> {
           print(e);
         }
       },
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          color: Color(0xFF0F0BDB),
-          boxShadow: <BoxShadow>[
-            BoxShadow(
-              color: Colors.blue.withOpacity(0.1),
-              blurRadius: 1,
-              offset: Offset(0, 2),
+      child: !widget.loading
+          ? Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: Color(0xFF0F0BDB),
+                boxShadow: <BoxShadow>[
+                  BoxShadow(
+                    color: Colors.blue.withOpacity(0.1),
+                    blurRadius: 1,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              alignment: Alignment.center,
+              padding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+              width: MediaQuery.of(context).size.width * 0.8,
+              height: 60,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'CAPTURE',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  SizedBox(
+                    width: 10,
+                  ),
+                  Icon(Icons.camera_alt, color: Colors.white)
+                ],
+              ),
+            )
+          : Center(
+              child: CircularProgressIndicator(),
             ),
-          ],
-        ),
-        alignment: Alignment.center,
-        padding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-        width: MediaQuery.of(context).size.width * 0.8,
-        height: 60,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'CAPTURE',
-              style: TextStyle(color: Colors.white),
-            ),
-            SizedBox(
-              width: 10,
-            ),
-            Icon(Icons.camera_alt, color: Colors.white)
-          ],
-        ),
-      ),
     );
   }
 
-  signSheet(context) {
-    return Container(
+  signSheet(BuildContext context) {
+    return  Container(
       padding: EdgeInsets.all(20),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -320,32 +330,17 @@ class _AuthActionButtonState extends State<AuthActionButton> {
                 SizedBox(height: 10),
                 !widget.isLogin
                     ? AppTextField(
-                        controller: _userRegTextEditingController,
-                        labelText: "Reg Number",
+                        controller: _emailTextEditingController,
+                        labelText: "Email",
                       )
                     : Container(),
                 SizedBox(height: 10),
                 !widget.isLogin
                     ? AppTextField(
-                        controller: _userClassTextEditingController,
-                        labelText: "Class",
-                      )
+                  controller: _phoneNumberTextEditingController,
+                  labelText: "Phone Number",
+                )
                     : Container(),
-                SizedBox(height: 10),
-                !widget.isLogin
-                    ? AppTextField(
-                        controller: _userParentMobileTextEditingController,
-                        labelText: "Parent Mobile",
-                      )
-                    : Container(),
-                // SizedBox(height: 10),
-                // widget.isLogin && predictedUser == null
-                //     ? Container()
-                //     : AppTextField(
-                //         controller: _passwordTextEditingController,
-                //         labelText: "Password",
-                //         isPassword: true,
-                //       ),
                 SizedBox(height: 10),
                 Divider(),
                 SizedBox(height: 10),

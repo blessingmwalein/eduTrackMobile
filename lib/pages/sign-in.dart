@@ -12,6 +12,8 @@ import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
+import 'home.dart';
+
 class SignIn extends StatefulWidget {
   final CameraDescription cameraDescription;
 
@@ -40,6 +42,8 @@ class SignInState extends State<SignIn> {
   bool _saving = false;
   bool _bottomSheetVisible = false;
 
+  bool loading = false;
+
   String imagePath;
   Size imageSize;
   Face faceDetected;
@@ -59,6 +63,11 @@ class SignInState extends State<SignIn> {
     super.dispose();
   }
 
+  _setLoading(bool value) {
+    setState(() {
+      loading = value;
+    });
+  }
   /// starts the camera & start framing faces
   _start() async {
     _initializeControllerFuture =
@@ -145,7 +154,8 @@ class SignInState extends State<SignIn> {
   }
 
   _onBackPressed() {
-    Navigator.of(context).pop();
+    Navigator.push(context,
+        MaterialPageRoute(builder: (BuildContext context) => MyHomePage()));
   }
 
   _reload() {
@@ -230,7 +240,9 @@ class SignInState extends State<SignIn> {
               onPressed: onShot,
               isLogin: true,
               reload: _reload,
-              isSignUp :false
+              isSignUp :false,
+              loading:loading,
+          setLoading:_setLoading
             )
           : Container(),
     );

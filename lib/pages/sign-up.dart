@@ -11,6 +11,8 @@ import 'package:camera/camera.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:flutter/material.dart';
 
+import 'home.dart';
+
 class SignUp extends StatefulWidget {
   final CameraDescription cameraDescription;
 
@@ -35,6 +37,8 @@ class SignUpState extends State<SignUp> {
   bool _saving = false;
   bool _bottomSheetVisible = false;
 
+  bool loading = false;
+
   // service injection
   MLKitService _mlKitService = MLKitService();
   CameraService _cameraService = CameraService();
@@ -55,8 +59,16 @@ class SignUpState extends State<SignUp> {
     super.dispose();
   }
 
+  //
+  _setLoading(bool value) {
+    setState(() {
+      loading = value;
+    });
+  }
+
   /// starts the camera & start framing faces
   _start() async {
+    _setLoading(true);
     _initializeControllerFuture =
         _cameraService.startService(widget.cameraDescription);
     await _initializeControllerFuture;
@@ -66,10 +78,13 @@ class SignUpState extends State<SignUp> {
     });
 
     _frameFaces();
+    _setLoading(false);
   }
 
   /// handles the button pressed event
   Future<void> onShot() async {
+    _setLoading(true);
+
     if (faceDetected == null) {
       showDialog(
         context: context,
@@ -79,7 +94,7 @@ class SignUpState extends State<SignUp> {
           );
         },
       );
-
+      _setLoading(false);
       return false;
     } else {
       _saving = true;
@@ -93,6 +108,7 @@ class SignUpState extends State<SignUp> {
         _bottomSheetVisible = true;
         pictureTaked = true;
       });
+      _setLoading(false);
 
       return true;
     }
@@ -139,7 +155,8 @@ class SignUpState extends State<SignUp> {
   }
 
   _onBackPressed() {
-    Navigator.of(context).pop();
+    Navigator.push(context,
+        MaterialPageRoute(builder: (BuildContext context) => MyHomePage()));
   }
 
   _reload() {
@@ -157,76 +174,83 @@ class SignUpState extends State<SignUp> {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
     return Scaffold(
-        body: Stack(
-          children: [
-            FutureBuilder<void>(
-              future: _initializeControllerFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  if (pictureTaked) {
-                    return Container(
-                      width: width,
-                      height: height,
-                      child: Transform(
-                          alignment: Alignment.center,
-                          child: FittedBox(
-                            fit: BoxFit.cover,
-                            child: Image.file(File(imagePath)),
-                          ),
-                          transform: Matrix4.rotationY(mirror)),
-                    );
-                  } else {
-                    return Transform.scale(
-                      scale: 1.0,
-                      child: AspectRatio(
-                        aspectRatio: MediaQuery.of(context).size.aspectRatio,
-                        child: OverflowBox(
-                          alignment: Alignment.center,
-                          child: FittedBox(
-                            fit: BoxFit.fitHeight,
-                            child: Container(
-                              width: width,
-                              height: width *
-                                  _cameraService
-                                      .cameraController.value.aspectRatio,
-                              child: Stack(
-                                fit: StackFit.expand,
-                                children: <Widget>[
-                                  CameraPreview(
-                                      _cameraService.cameraController),
-                                  CustomPaint(
-                                    painter: FacePainter(
-                                        face: faceDetected,
-                                        imageSize: imageSize),
+        body: !loading
+            ? Stack(
+                children: [
+                  FutureBuilder<void>(
+                    future: _initializeControllerFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done) {
+                        if (pictureTaked) {
+                          return Container(
+                            width: width,
+                            height: height,
+                            child: Transform(
+                                alignment: Alignment.center,
+                                child: FittedBox(
+                                  fit: BoxFit.cover,
+                                  child: Image.file(File(imagePath)),
+                                ),
+                                transform: Matrix4.rotationY(mirror)),
+                          );
+                        } else {
+                          return Transform.scale(
+                            scale: 1.0,
+                            child: AspectRatio(
+                              aspectRatio:
+                                  MediaQuery.of(context).size.aspectRatio,
+                              child: OverflowBox(
+                                alignment: Alignment.center,
+                                child: FittedBox(
+                                  fit: BoxFit.fitHeight,
+                                  child: Container(
+                                    width: width,
+                                    height: width *
+                                        _cameraService
+                                            .cameraController.value.aspectRatio,
+                                    child: Stack(
+                                      fit: StackFit.expand,
+                                      children: <Widget>[
+                                        CameraPreview(
+                                            _cameraService.cameraController),
+                                        CustomPaint(
+                                          painter: FacePainter(
+                                              face: faceDetected,
+                                              imageSize: imageSize),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ],
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                      ),
-                    );
-                  }
-                } else {
-                  return Center(child: CircularProgressIndicator());
-                }
-              },
-            ),
-            CameraHeader(
-              "SIGN UP",
-              onBackPressed: _onBackPressed,
-            )
-          ],
-        ),
+                          );
+                        }
+                      } else {
+                        return Center(child: CircularProgressIndicator());
+                      }
+                    },
+                  ),
+                  CameraHeader(
+                    "SIGN UP",
+                    onBackPressed: _onBackPressed,
+                  )
+                ],
+              )
+            : Center(
+                child: CircularProgressIndicator(),
+              ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         floatingActionButton: !_bottomSheetVisible
-            ? AuthActionButton(
-                _initializeControllerFuture,
+            ? AuthActionButton(_initializeControllerFuture,
                 onPressed: onShot,
                 isLogin: false,
                 reload: _reload,
-                isSignUp :true
-              )
+                isSignUp: true,
+                loading:loading,
+                setLoading:_setLoading
+
+        )
             : Container());
   }
 }
